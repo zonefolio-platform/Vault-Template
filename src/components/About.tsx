@@ -1,14 +1,13 @@
 'use client';
 
 import { motion, useReducedMotion, type HTMLMotionProps } from 'framer-motion';
-import { WorkExperience, Education } from '@/types';
+import { PortfolioData, WorkExperience, Education } from '@/types';
+import { isFilled } from '@/lib/is-filled';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface AboutProps {
-  bio: string;
-  experience: WorkExperience[];
-  education: Education[];
+  data?: PortfolioData['about'];
 }
 
 // ─── Section label ────────────────────────────────────────────────────────────
@@ -84,28 +83,25 @@ function ExperienceItem({ item, isLast }: ExperienceItemProps): React.ReactEleme
       >
         {item.position}
       </p>
-      <p
-        style={{
-          fontFamily: 'var(--vault-font-mono)',
-          fontSize:   '12px',
-          color:      'var(--accent)',
-          margin:     '4px 0 8px',
-        }}
-      >
-        {item.company} · {item.duration}
-      </p>
-      <p
-        style={{
-          fontFamily:  'var(--vault-font-body)',
-          fontWeight:  300,
-          fontSize:    '14px',
-          color:       'var(--vault-text-secondary)',
-          lineHeight:  1.65,
-          margin:      0,
-        }}
-      >
-        {item.description}
-      </p>
+      {(isFilled(item.company) || isFilled(item.duration)) && (
+        <p style={{ fontFamily: 'var(--vault-font-mono)', fontSize: '12px', color: 'var(--accent)', margin: '4px 0 8px' }}>
+          {[item.company, item.duration].filter(Boolean).join(' · ')}
+        </p>
+      )}
+      {isFilled(item.description) && (
+        <p
+          style={{
+            fontFamily:  'var(--vault-font-body)',
+            fontWeight:  300,
+            fontSize:    '14px',
+            color:       'var(--vault-text-secondary)',
+            lineHeight:  1.65,
+            margin:      0,
+          }}
+        >
+          {item.description}
+        </p>
+      )}
     </div>
   );
 }
@@ -130,26 +126,16 @@ function EducationItem({ item }: EducationItemProps): React.ReactElement {
       >
         {item.degree}
       </p>
-      <p
-        style={{
-          fontFamily: 'var(--vault-font-mono)',
-          fontSize:   '12px',
-          color:      'var(--accent)',
-          margin:     '4px 0 8px',
-        }}
-      >
-        {item.university} · {item.from}–{item.to}
-      </p>
-      <p
-        style={{
-          fontFamily: 'var(--vault-font-mono)',
-          fontSize:   '11px',
-          color:      'var(--vault-text-secondary)',
-          margin:     0,
-        }}
-      >
-        GPA {item.GPA}
-      </p>
+      {(isFilled(item.university) || isFilled(item.from) || isFilled(item.to)) && (
+        <p style={{ fontFamily: 'var(--vault-font-mono)', fontSize: '12px', color: 'var(--accent)', margin: '4px 0 8px' }}>
+          {[item.university, (isFilled(item.from) && isFilled(item.to)) ? `${item.from}–${item.to}` : undefined].filter(Boolean).join(' · ')}
+        </p>
+      )}
+      {isFilled(item.GPA) && (
+        <p style={{ fontFamily: 'var(--vault-font-mono)', fontSize: '11px', color: 'var(--vault-text-secondary)', margin: 0 }}>
+          GPA {item.GPA}
+        </p>
+      )}
     </div>
   );
 }
@@ -202,7 +188,11 @@ function StatBlock({ value, label }: StatBlockProps): React.ReactElement {
 
 // ─── About section ────────────────────────────────────────────────────────────
 
-export default function About({ bio, experience, education }: AboutProps): React.ReactElement {
+export default function About({ data }: AboutProps): React.ReactElement {
+  const bio        = data?.bio;
+  const experience = (data?.experience ?? []).filter((e) => isFilled(e.position));
+  const education  = (data?.education  ?? []).filter((e) => isFilled(e.degree));
+
   const reducedMotion = useReducedMotion() ?? false;
 
   const yearsActive     = experience.length + 2;
@@ -259,19 +249,21 @@ export default function About({ bio, experience, education }: AboutProps): React
           {/* ── Left column: bio + experience + education ── */}
           <div>
             {/* Bio */}
-            <p
-              style={{
-                fontFamily:   'var(--vault-font-body)',
-                fontWeight:   300,
-                fontSize:     '15px',
-                color:        'var(--vault-text-secondary)',
-                lineHeight:   1.75,
-                marginBottom: '40px',
-                marginTop:    0,
-              }}
-            >
-              {bio}
-            </p>
+            {isFilled(bio) && (
+              <p
+                style={{
+                  fontFamily:   'var(--vault-font-body)',
+                  fontWeight:   300,
+                  fontSize:     '15px',
+                  color:        'var(--vault-text-secondary)',
+                  lineHeight:   1.75,
+                  marginBottom: '40px',
+                  marginTop:    0,
+                }}
+              >
+                {bio}
+              </p>
+            )}
 
             {/* Experience */}
             {experience.length > 0 && (
@@ -279,7 +271,7 @@ export default function About({ bio, experience, education }: AboutProps): React
                 <Subheading>Experience</Subheading>
                 {experience.map((item, i) => (
                   <ExperienceItem
-                    key={`${item.company}-${i}`}
+                    key={item.position ?? i}
                     item={item}
                     isLast={i === experience.length - 1}
                   />
@@ -292,7 +284,7 @@ export default function About({ bio, experience, education }: AboutProps): React
               <div style={{ marginTop: '40px' }}>
                 <Subheading>Education</Subheading>
                 {education.map((item, i) => (
-                  <EducationItem key={`${item.university}-${i}`} item={item} />
+                  <EducationItem key={item.degree ?? i} item={item} />
                 ))}
               </div>
             )}

@@ -2,12 +2,13 @@
 
 import { useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { Project } from '@/types';
+import { PortfolioData, Project } from '@/types';
+import { isFilled } from '@/lib/is-filled';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface WorkProps {
-  projects: Project[];
+  data?: PortfolioData['projects'];
 }
 
 // ─── Section label ────────────────────────────────────────────────────────────
@@ -109,10 +110,10 @@ function ProjectCard({ project, isFeatured = false }: ProjectCardProps): React.R
           flexShrink: 0,
         }}
       >
-        {project.image ? (
+        {isFilled(project.image) ? (
           <img
             src={project.image}
-            alt={project.name}
+            alt={project.name ?? ''}
             style={{
               width:      '100%',
               height:     '100%',
@@ -123,7 +124,7 @@ function ProjectCard({ project, isFeatured = false }: ProjectCardProps): React.R
             }}
           />
         ) : (
-          <ImagePlaceholder name={project.name} height="100%" />
+          <ImagePlaceholder name={project.name ?? ''} height="100%" />
         )}
       </div>
 
@@ -151,25 +152,27 @@ function ProjectCard({ project, isFeatured = false }: ProjectCardProps): React.R
         </h3>
 
         {/* Description */}
-        <p
-          style={{
-            fontFamily:        'var(--vault-font-body)',
-            fontWeight:        300,
-            fontSize:          '14px',
-            color:             'var(--vault-text-secondary)',
-            marginBottom:      '12px',
-            lineHeight:        1.6,
-            display:           '-webkit-box',
-            WebkitLineClamp:   2,
-            WebkitBoxOrient:   'vertical',
-            overflow:          'hidden',
-          }}
-        >
-          {project.description}
-        </p>
+        {isFilled(project.description) && (
+          <p
+            style={{
+              fontFamily:        'var(--vault-font-body)',
+              fontWeight:        300,
+              fontSize:          '14px',
+              color:             'var(--vault-text-secondary)',
+              marginBottom:      '12px',
+              lineHeight:        1.6,
+              display:           '-webkit-box',
+              WebkitLineClamp:   2,
+              WebkitBoxOrient:   'vertical',
+              overflow:          'hidden',
+            }}
+          >
+            {project.description}
+          </p>
+        )}
 
         {/* Technologies */}
-        {project.technologies.length > 0 && (
+        {isFilled(project.technologies) && (
           <div
             style={{
               display:      'flex',
@@ -178,7 +181,7 @@ function ProjectCard({ project, isFeatured = false }: ProjectCardProps): React.R
               marginBottom: '12px',
             }}
           >
-            {project.technologies.map((tech) => (
+            {project.technologies!.filter((tech) => isFilled(tech)).map((tech) => (
               <span
                 key={tech}
                 style={{
@@ -194,7 +197,7 @@ function ProjectCard({ project, isFeatured = false }: ProjectCardProps): React.R
         )}
 
         {/* Links */}
-        {(project.liveUrl || project.githubUrl) && (
+        {(isFilled(project.liveUrl) || isFilled(project.githubUrl)) && (
           <div
             style={{
               display:    'flex',
@@ -202,11 +205,11 @@ function ProjectCard({ project, isFeatured = false }: ProjectCardProps): React.R
               marginTop:  'auto',
             }}
           >
-            {project.liveUrl && (
-              <CardLink href={project.liveUrl} label="View live →" />
+            {isFilled(project.liveUrl) && (
+              <CardLink href={project.liveUrl!} label="View live →" />
             )}
-            {project.githubUrl && (
-              <CardLink href={project.githubUrl} label="Source" />
+            {isFilled(project.githubUrl) && (
+              <CardLink href={project.githubUrl!} label="Source" />
             )}
           </div>
         )}
@@ -276,10 +279,11 @@ function FadeIn({ children, delay = 0, reducedMotion, style }: FadeInProps): Rea
 
 // ─── Work section ─────────────────────────────────────────────────────────────
 
-export default function Work({ projects }: WorkProps): React.ReactElement {
+export default function Work({ data }: WorkProps): React.ReactElement {
+  const projects = (data?.projects ?? []).filter((p) => isFilled(p.name));
   const reducedMotion = useReducedMotion() ?? false;
 
-  if (!projects || projects.length === 0) {
+  if (projects.length === 0) {
     return (
       <section
         id="work"
@@ -305,7 +309,7 @@ export default function Work({ projects }: WorkProps): React.ReactElement {
   }
 
   // Derive featured and rest
-  const featuredIndex = projects.findIndex((p) => p.image);
+  const featuredIndex = projects.findIndex((p) => isFilled(p.image));
   const featuredIdx   = featuredIndex !== -1 ? featuredIndex : 0;
   const featured      = projects[featuredIdx];
   const rest          = projects
@@ -355,7 +359,7 @@ export default function Work({ projects }: WorkProps): React.ReactElement {
             <div id="work-right-col">
               {rest.map((project, i) => (
                 <FadeIn
-                  key={project.name}
+                  key={project.name ?? i}
                   reducedMotion={reducedMotion}
                   delay={0.1 + i * 0.1}
                   style={{ flex: 1, minHeight: 0 }}

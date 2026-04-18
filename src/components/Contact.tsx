@@ -1,13 +1,14 @@
 'use client';
 
 import { motion, useReducedMotion, type HTMLMotionProps } from 'framer-motion';
-import { ContactInfo, SocialLink } from '@/types';
+import { PortfolioData, SocialLink } from '@/types';
+import { isFilled } from '@/lib/is-filled';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface ContactProps {
-  contact: ContactInfo;
-  socialLinks: SocialLink[];
+  data?: PortfolioData['contact'];
+  socialLinks?: SocialLink[];
 }
 
 // ─── Section label ────────────────────────────────────────────────────────────
@@ -88,7 +89,7 @@ interface SocialLinksListProps {
 }
 
 function SocialLinksList({ links }: SocialLinksListProps): React.ReactElement {
-  const visibleLinks = links.filter((link) => Boolean(link.url));
+  const visibleLinks = links.filter((link) => isFilled(link.url) && isFilled(link.platform));
 
   if (visibleLinks.length === 0) return <></>;
 
@@ -115,10 +116,10 @@ function SocialLinksList({ links }: SocialLinksListProps): React.ReactElement {
           gap:            '24px',
         }}
       >
-        {visibleLinks.map((link) => (
+        {visibleLinks.map((link, i) => (
           <a
-            key={link.platform}
-            href={link.url}
+            key={link.platform ?? i}
+            href={link.url ?? '#'}
             target="_blank"
             rel="noopener noreferrer"
             className="contact-social-link"
@@ -133,7 +134,9 @@ function SocialLinksList({ links }: SocialLinksListProps): React.ReactElement {
 
 // ─── Contact section ──────────────────────────────────────────────────────────
 
-export default function Contact({ contact, socialLinks }: ContactProps): React.ReactElement {
+export default function Contact({ data, socialLinks = [] }: ContactProps): React.ReactElement {
+  const email      = data?.email;
+  const validLinks = socialLinks.filter((l) => isFilled(l.url) && isFilled(l.platform));
   const reducedMotion = useReducedMotion() ?? false;
 
   const motionProps: Partial<HTMLMotionProps<'section'>> = reducedMotion
@@ -170,9 +173,9 @@ export default function Contact({ contact, socialLinks }: ContactProps): React.R
       >
         <SectionLabel />
 
-        {contact.email && <EmailLink email={contact.email} />}
+        {isFilled(email) && <EmailLink email={email!} />}
 
-        <SocialLinksList links={socialLinks} />
+        <SocialLinksList links={validLinks} />
       </motion.section>
     </>
   );

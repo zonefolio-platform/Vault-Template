@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface StackProps {
-  skills: string[];
+  skills?: string[];
 }
 
 interface ParticleData {
@@ -104,7 +104,7 @@ function SkillItem({ skill }: SkillItemProps): React.ReactElement {
 
 // ─── Stack section ────────────────────────────────────────────────────────────
 
-export default function Stack({ skills }: StackProps): React.ReactElement {
+export default function Stack({ skills = [] }: StackProps): React.ReactElement {
   const reducedMotion = useReducedMotion() ?? false;
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);

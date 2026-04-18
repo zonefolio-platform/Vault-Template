@@ -2,16 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { SocialLink } from '@/types';
+import { PortfolioData } from '@/types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface HeroProps {
-  name: string;
-  title: string;
-  image: string;
-  socialLinks: Array<SocialLink>;
-  available: boolean;
+  data?: PortfolioData['hero'];
+  available?: boolean;
 }
 
 // ─── Aurora background ────────────────────────────────────────────────────────
@@ -112,11 +109,12 @@ function GridOverlay(): React.ReactElement {
 
 interface EyebrowProps {
   available: boolean;
-  title: string;
+  title?: string;
 }
 
-function Eyebrow({ available, title }: EyebrowProps): React.ReactElement {
+function Eyebrow({ available, title }: EyebrowProps): React.ReactElement | null {
   const text = available ? 'Available for work' : title;
+  if (!text) return null;
 
   return (
     <div
@@ -157,7 +155,7 @@ function Eyebrow({ available, title }: EyebrowProps): React.ReactElement {
 // ─── Display name with BlurText entrance ──────────────────────────────────────
 
 interface DisplayNameProps {
-  name: string;
+  name?: string;
   isMobile: boolean;
   reducedMotion: boolean;
 }
@@ -189,7 +187,7 @@ function DisplayName({ name, isMobile, reducedMotion }: DisplayNameProps): React
     <div>
       {/* Solid line */}
       <span style={{ ...sharedStyle, color: 'var(--vault-text-primary)' }}>
-        {name}
+        {name ?? ''}
       </span>
       {/* Outline echo */}
       <span
@@ -200,7 +198,7 @@ function DisplayName({ name, isMobile, reducedMotion }: DisplayNameProps): React
           WebkitTextStroke:   '1px rgba(240,242,248,0.25)',
         }}
       >
-        {name}
+        {name ?? ''}
       </span>
     </div>
   );
@@ -227,7 +225,7 @@ interface RotatingSubtitleProps {
   reducedMotion: boolean;
 }
 
-function RotatingSubtitle({ roles, reducedMotion }: RotatingSubtitleProps): React.ReactElement {
+function RotatingSubtitle({ roles, reducedMotion }: RotatingSubtitleProps): React.ReactElement | null {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
@@ -239,6 +237,8 @@ function RotatingSubtitle({ roles, reducedMotion }: RotatingSubtitleProps): Reac
 
     return () => clearInterval(id);
   }, [reducedMotion, roles.length]);
+
+  if (roles.length === 1 && !roles[0]) return null;
 
   const baseStyle: React.CSSProperties = {
     fontFamily:   'var(--vault-font-body)',
@@ -334,11 +334,9 @@ function CtaRow(): React.ReactElement {
 
 // ─── Hero ─────────────────────────────────────────────────────────────────────
 
-export default function Hero({
-  name,
-  title,
-  available,
-}: HeroProps): React.ReactElement {
+export default function Hero({ data, available = false }: HeroProps): React.ReactElement {
+  const name  = data?.name;
+  const title = data?.title;
   const reducedMotion = useReducedMotion() ?? false;
 
   const [isMobile, setIsMobile] = useState(false);
@@ -353,9 +351,9 @@ export default function Hero({
   }, []);
 
   // Split title on " & " to get rotating roles; fallback to single item
-  const roles = title.includes(' & ')
+  const roles = title?.includes(' & ')
     ? title.split(' & ').map((r) => r.trim())
-    : [title];
+    : [title ?? ''];
 
   return (
     <>
