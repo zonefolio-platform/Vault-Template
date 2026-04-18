@@ -1,22 +1,26 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useReducedMotion } from 'framer-motion';
 
 interface NavProps {
   name: string;
+  sections: string[];
 }
 
-const NAV_LINKS: { label: string; href: string }[] = [
-  { label: 'Work',    href: '#work'    },
-  { label: 'About',   href: '#about'   },
-  { label: 'Stack',   href: '#stack'   },
-  { label: 'Contact', href: '#contact' },
-];
+const SECTION_LABELS: Record<string, string> = {
+  work:    'Work',
+  about:   'About',
+  stack:   'Stack',
+  contact: 'Contact',
+};
 
-const SECTION_IDS = ['hero', 'work', 'about', 'stack', 'contact'];
-
-export default function Nav({ name }: NavProps): React.ReactElement {
+export default function Nav({ name, sections }: NavProps): React.ReactElement {
+  const navLinks   = useMemo(
+    () => sections.map((id) => ({ label: SECTION_LABELS[id] ?? id, href: `#${id}` })),
+    [sections]
+  );
+  const sectionIds = useMemo(() => ['hero', ...sections], [sections]);
   const [scrolled, setScrolled]           = useState(false);
   const [activeSection, setActiveSection] = useState<string>('hero');
   const observerRef                       = useRef<IntersectionObserver | null>(null);
@@ -58,7 +62,7 @@ export default function Nav({ name }: NavProps): React.ReactElement {
       }
     );
 
-    for (const id of SECTION_IDS) {
+    for (const id of sectionIds) {
       const el = document.getElementById(id);
       if (el) {
         observerRef.current.observe(el);
@@ -69,7 +73,7 @@ export default function Nav({ name }: NavProps): React.ReactElement {
     return () => {
       observerRef.current?.disconnect();
     };
-  }, []);
+  }, [sectionIds]);
 
   const navBackground = scrolled
     ? 'rgba(8,10,15,0.85)'
@@ -133,7 +137,7 @@ export default function Nav({ name }: NavProps): React.ReactElement {
           padding:    0,
         }}
       >
-        {NAV_LINKS.map(({ label, href }) => {
+        {navLinks.map(({ label, href }) => {
           const sectionId = href.replace('#', '');
           const isActive  = activeSection === sectionId;
 
