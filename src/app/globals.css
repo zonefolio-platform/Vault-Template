@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+:root {
+  /* User colors — set via <html> style prop in layout.tsx */
+  /* Values below are last-resort CSS fallbacks only       */
+  --accent:    #3A7BFF;
+  --secondary: #161B27;
+  --highlight: #3A7BFF;
+
+  /* Derived — computed from user colors, never set manually */
+  --accent-glow:    color-mix(in srgb, var(--accent)    15%, transparent);
+  --accent-border:  color-mix(in srgb, var(--accent)    30%, transparent);
+  --highlight-glow: color-mix(in srgb, var(--highlight) 20%, transparent);
+  --secondary-soft: color-mix(in srgb, var(--secondary) 60%, var(--vault-bg));
+
+  /* Base palette — fixed, never user-customizable */
+  --vault-bg:             #080A0F;
+  --vault-surface:        #0F1117;
+  --vault-border:         rgba(255,255,255,0.07);
+  --vault-border-mid:     rgba(255,255,255,0.13);
+  --vault-text-primary:   #F0F2F8;
+  --vault-text-secondary: #6B7280;
+  --vault-text-muted:     #374151;
+  --vault-success:        #22C55E;
+  --vault-error:          #EF4444;
+  --vault-font-display:   'Clash Display', sans-serif;
+  --vault-font-body:      'Satoshi', sans-serif;
+  --vault-font-mono:      'JetBrains Mono', monospace;
+
+  /* Spacing */
+  --space-xs:  4px;
+  --space-sm:  8px;
+  --space-md:  16px;
+  --space-lg:  24px;
+  --space-xl:  40px;
+  --space-2xl: 64px;
+  --space-3xl: 96px;
+}
+
+/* Fallback for browsers without color-mix() support */
+@supports not (color: color-mix(in srgb, red, blue)) {
+  :root {
+    --accent-glow:    rgba(58, 123, 255, 0.15);
+    --accent-border:  rgba(58, 123, 255, 0.30);
+    --highlight-glow: rgba(58, 123, 255, 0.20);
+    --secondary-soft: #0F1117;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--vault-bg);
+  color: var(--vault-text-primary);
+  font-family: var(--vault-font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
