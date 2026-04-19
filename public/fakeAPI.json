@@ -1,6 +1,6 @@
 {
   "hero": {
-    "name": "youssef saad",
+    "name": "Vault Pro",
     "title": "Software Engineer & Full-Stack Developer",
     "image": "https://res.cloudinary.com/dsy0j0gh0/image/upload/v1775427835/ZF_uafpay.png",
     "socialLinks": [
@@ -102,7 +102,7 @@
     "whatsapp": "15551234567"
   },
   "meta": {
-    "plan": "FREE",
-    "showBranding": true
+    "plan": "Pro",
+    "showBranding": false
   }
 }

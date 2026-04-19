@@ -13,13 +13,14 @@ export function safeColor(
   key: keyof typeof DEFAULTS
 ): string {
   const fallback = DEFAULTS[key];
-  if (!value || !isValidHex(value)) {
+  const trimmed = value?.trim().replace(/^["']|["']$/g, '');
+  if (!trimmed || !isValidHex(trimmed)) {
     if (process.env.NODE_ENV === 'development' && value) {
       console.warn(`[Vault] Invalid color for ${key}: "${value}" — using default ${fallback}`);
     }
     return fallback;
   }
-  return value;
+  return trimmed;
 }
 
 export function getThemeColors(): { accent: string; secondary: string; highlight: string } {

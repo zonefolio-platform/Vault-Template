@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { PortfolioData, Project } from '@/types';
 import { isFilled } from '@/lib/is-filled';
@@ -15,82 +15,70 @@ interface WorkProps {
 
 function SectionLabel(): React.ReactElement {
   return (
-    <p
-      style={{
-        fontFamily:    'var(--vault-font-mono)',
-        fontSize:      '10px',
-        fontWeight:    500,
-        letterSpacing: '2px',
-        textTransform: 'uppercase',
-        color:         'var(--accent)',
-        paddingLeft:   '10px',
-        borderLeft:    '1px solid var(--accent)',
-        marginBottom:  '48px',
-      }}
-    >
+    <p style={{
+      fontFamily: 'var(--vault-font-mono)', fontSize: '10px', fontWeight: 500,
+      letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--accent)',
+      paddingLeft: '10px', borderLeft: '1px solid var(--accent)', marginBottom: '48px',
+    }}>
       Selected work
     </p>
   );
 }
 
-// ─── Image placeholder ────────────────────────────────────────────────────────
+// ─── Card link ────────────────────────────────────────────────────────────────
 
-interface ImagePlaceholderProps {
-  name: string;
-  height: string;
-}
+interface CardLinkProps { href: string; label: string; primary?: boolean; }
 
-function ImagePlaceholder({ name, height }: ImagePlaceholderProps): React.ReactElement {
+function CardLink({ href, label, primary = false }: CardLinkProps): React.ReactElement {
+  const [hovered, setHovered] = useState(false);
   return (
-    <div
-      aria-hidden="true"
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       style={{
-        width:          '100%',
-        height,
-        background:     'var(--secondary)',
-        display:        'flex',
+        fontFamily:     'var(--vault-font-mono)',
+        fontSize:       '12px',
+        letterSpacing:  '0.3px',
+        padding:        '7px 14px',
+        borderRadius:   '6px',
+        textDecoration: 'none',
+        display:        'inline-flex',
         alignItems:     'center',
-        justifyContent: 'center',
-        flexShrink:     0,
+        transition:     'background 0.2s ease, border-color 0.2s ease, color 0.2s ease',
+        ...(primary
+          ? {
+              background:  hovered ? 'var(--accent)' : 'transparent',
+              border:      '1px solid var(--accent-border)',
+              color:       hovered ? '#ffffff'         : 'var(--accent)',
+            }
+          : {
+              background:  hovered ? 'var(--vault-surface)' : 'transparent',
+              border:      '1px solid var(--vault-border)',
+              color:       hovered ? 'var(--vault-text-primary)' : 'var(--vault-text-secondary)',
+            }),
       }}
     >
-      <span
-        style={{
-          fontFamily: 'var(--vault-font-display)',
-          fontWeight: 700,
-          fontSize:   '32px',
-          color:      'var(--vault-text-muted)',
-        }}
-      >
-        {name.charAt(0)}
-      </span>
-    </div>
+      {label}
+    </a>
   );
 }
 
 // ─── Project card ─────────────────────────────────────────────────────────────
 
-interface ProjectCardProps {
-  project: Project;
-  isFeatured?: boolean;
-}
-
-function ProjectCard({ project, isFeatured = false }: ProjectCardProps): React.ReactElement {
-  const [hovered, setHovered]       = useState(false);
-  const [imgHovered, setImgHovered] = useState(false);
-
-  const imageHeight = isFeatured ? '60%' : '50%';
-  const titleSize   = isFeatured ? '24px' : '20px';
+function ProjectCard({ project, isFeatured = false }: { project: Project; isFeatured?: boolean }): React.ReactElement {
+  const [hovered, setHovered] = useState(false);
+  const hasImage = isFilled(project.image);
 
   return (
     <article
-      onMouseEnter={() => { setHovered(true); setImgHovered(true); }}
-      onMouseLeave={() => { setHovered(false); setImgHovered(false); }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       style={{
         background:    'var(--vault-surface)',
-        border:        hovered
-          ? '1px solid var(--accent-border)'
-          : '1px solid var(--vault-border)',
+        border:        hovered ? '1px solid var(--accent-border)' : '1px solid var(--vault-border)',
         borderRadius:  '16px',
         overflow:      'hidden',
         display:       'flex',
@@ -100,117 +88,53 @@ function ProjectCard({ project, isFeatured = false }: ProjectCardProps): React.R
         boxShadow:     hovered ? '0 0 24px var(--highlight-glow)' : 'none',
       }}
     >
-      {/* Image area */}
-      <div
-        style={{
-          width:    '100%',
-          height:   imageHeight,
-          minHeight: isFeatured ? '280px' : '180px',
-          overflow: 'hidden',
-          flexShrink: 0,
-        }}
-      >
-        {isFilled(project.image) ? (
+      {hasImage && (
+        <div style={{ width: '100%', aspectRatio: isFeatured ? '21 / 9' : '16 / 9', overflow: 'hidden', flexShrink: 0 }}>
           <img
-            src={project.image}
-            alt={project.name ?? ''}
+            src={project.image!} alt={project.name ?? ''} loading="lazy" decoding="async"
             style={{
-              width:      '100%',
-              height:     '100%',
-              objectFit:  'cover',
+              width: '100%', height: '100%', objectFit: 'cover', display: 'block',
               transition: 'transform 0.3s ease',
-              transform:  imgHovered ? 'scale(1.02)' : 'scale(1)',
-              display:    'block',
+              transform: hovered ? 'scale(1.02)' : 'scale(1)',
             }}
           />
-        ) : (
-          <ImagePlaceholder name={project.name ?? ''} height="100%" />
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Card body */}
-      <div
-        style={{
-          padding:       '20px 24px',
-          display:       'flex',
-          flexDirection: 'column',
-          flex:          1,
-        }}
-      >
-        {/* Title */}
-        <h3
-          style={{
-            fontFamily:   'var(--vault-font-display)',
-            fontWeight:   500,
-            fontSize:     titleSize,
-            color:        'var(--vault-text-primary)',
-            marginBottom: '8px',
-            lineHeight:   1.2,
-          }}
-        >
+      <div style={{ padding: isFeatured ? '24px 28px' : '18px 20px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+        <h3 style={{
+          fontFamily: 'var(--vault-font-display)', fontWeight: 500,
+          fontSize: isFeatured ? '24px' : '18px', color: 'var(--vault-text-primary)',
+          marginBottom: '8px', marginTop: 0, lineHeight: 1.2,
+        }}>
           {project.name}
         </h3>
 
-        {/* Description */}
         {isFilled(project.description) && (
-          <p
-            style={{
-              fontFamily:        'var(--vault-font-body)',
-              fontWeight:        300,
-              fontSize:          '14px',
-              color:             'var(--vault-text-secondary)',
-              marginBottom:      '12px',
-              lineHeight:        1.6,
-              display:           '-webkit-box',
-              WebkitLineClamp:   2,
-              WebkitBoxOrient:   'vertical',
-              overflow:          'hidden',
-            }}
-          >
+          <p style={{
+            fontFamily: 'var(--vault-font-body)', fontWeight: 300, fontSize: '14px',
+            color: 'var(--vault-text-secondary)', marginBottom: '12px', marginTop: 0,
+            lineHeight: 1.6, display: '-webkit-box',
+            WebkitLineClamp: isFeatured ? 3 : 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+          }}>
             {project.description}
           </p>
         )}
 
-        {/* Technologies */}
         {isFilled(project.technologies) && (
-          <div
-            style={{
-              display:      'flex',
-              flexWrap:     'wrap',
-              gap:          '8px',
-              marginBottom: '12px',
-            }}
-          >
-            {project.technologies!.filter((tech) => isFilled(tech)).map((tech) => (
-              <span
-                key={tech}
-                style={{
-                  fontFamily: 'var(--vault-font-mono)',
-                  fontSize:   '11px',
-                  color:      'var(--accent)',
-                }}
-              >
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
+            {project.technologies!.filter(isFilled).map((tech) => (
+              <span key={tech} style={{ fontFamily: 'var(--vault-font-mono)', fontSize: '11px', color: 'var(--accent)' }}>
                 {tech}
               </span>
             ))}
           </div>
         )}
 
-        {/* Links */}
         {(isFilled(project.liveUrl) || isFilled(project.githubUrl)) && (
-          <div
-            style={{
-              display:    'flex',
-              gap:        '16px',
-              marginTop:  'auto',
-            }}
-          >
-            {isFilled(project.liveUrl) && (
-              <CardLink href={project.liveUrl!} label="View live →" />
-            )}
-            {isFilled(project.githubUrl) && (
-              <CardLink href={project.githubUrl!} label="Source" />
-            )}
+          <div style={{ display: 'flex', gap: '16px', marginTop: 'auto', paddingTop: '8px' }}>
+            {isFilled(project.liveUrl)   && <CardLink href={project.liveUrl!}   label="View live →" primary />}
+            {isFilled(project.githubUrl) && <CardLink href={project.githubUrl!} label="Source" />}
           </div>
         )}
       </div>
@@ -218,158 +142,189 @@ function ProjectCard({ project, isFeatured = false }: ProjectCardProps): React.R
   );
 }
 
-// ─── Card link ────────────────────────────────────────────────────────────────
+// ─── Pagination dots ──────────────────────────────────────────────────────────
 
-interface CardLinkProps {
-  href: string;
-  label: string;
-}
-
-function CardLink({ href, label }: CardLinkProps): React.ReactElement {
-  const [hovered, setHovered] = useState(false);
-
+function PaginationDots({ count, active }: { count: number; active: number }): React.ReactElement {
   return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        fontFamily:  'var(--vault-font-mono)',
-        fontSize:    '12px',
-        color:       hovered
-          ? 'var(--vault-text-primary)'
-          : 'var(--vault-text-secondary)',
-        textDecoration: 'none',
-        transition:  'color 0.2s ease',
-      }}
-    >
-      {label}
-    </a>
-  );
-}
-
-// ─── Animated wrapper ─────────────────────────────────────────────────────────
-
-interface FadeInProps {
-  children: React.ReactNode;
-  delay?: number;
-  reducedMotion: boolean;
-  style?: React.CSSProperties;
-}
-
-function FadeIn({ children, delay = 0, reducedMotion, style }: FadeInProps): React.ReactElement {
-  if (reducedMotion) {
-    return <div style={style}>{children}</div>;
-  }
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: 'easeOut', delay }}
-      viewport={{ once: true }}
-      style={style}
-    >
-      {children}
-    </motion.div>
+    <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginTop: '20px' }}>
+      {Array.from({ length: count }, (_, i) => (
+        <div
+          key={i}
+          style={{
+            height:     '5px',
+            width:      i === active ? '20px' : '5px',
+            borderRadius: '3px',
+            background: i === active ? 'var(--accent)' : 'var(--vault-border-mid)',
+            transition: 'width 0.3s ease, background 0.3s ease',
+          }}
+        />
+      ))}
+    </div>
   );
 }
 
 // ─── Work section ─────────────────────────────────────────────────────────────
 
 export default function Work({ data }: WorkProps): React.ReactElement {
-  const projects = (data?.projects ?? []).filter((p) => isFilled(p.name));
+  const projects      = (data?.projects ?? []).filter((p) => isFilled(p.name));
   const reducedMotion = useReducedMotion() ?? false;
+  const sliderRef     = useRef<HTMLDivElement>(null);
+  const [activeSlide, setActiveSlide] = useState(0);
 
   if (projects.length === 0) {
     return (
-      <section
-        id="work"
-        aria-label="Selected work"
-        style={{
-          padding:   '96px 48px',
-          maxWidth:  '1200px',
-          margin:    '0 auto',
-        }}
-      >
+      <section id="work" aria-label="Selected work" style={{ padding: '96px 48px', maxWidth: '1200px', margin: '0 auto' }}>
         <SectionLabel />
-        <p
-          style={{
-            fontFamily: 'var(--vault-font-body)',
-            fontSize:   '15px',
-            color:      'var(--vault-text-secondary)',
-          }}
-        >
+        <p style={{ fontFamily: 'var(--vault-font-body)', fontSize: '15px', color: 'var(--vault-text-secondary)' }}>
           No projects to display yet.
         </p>
       </section>
     );
   }
 
-  // Derive featured and rest
-  const featuredIndex = projects.findIndex((p) => isFilled(p.image));
-  const featuredIdx   = featuredIndex !== -1 ? featuredIndex : 0;
-  const featured      = projects[featuredIdx];
-  const rest          = projects
-    .filter((_, i) => i !== featuredIdx)
-    .slice(0, 3);
+  const featuredIdx = projects.findIndex((p) => isFilled(p.image));
+  const pinnedIdx   = featuredIdx !== -1 ? featuredIdx : 0;
+  const featured    = projects[pinnedIdx];
+  const rest        = projects.filter((_, i) => i !== pinnedIdx);
+
+  function onSliderScroll(): void {
+    const slider = sliderRef.current;
+    if (!slider || rest.length <= 1) return;
+    const maxScroll = slider.scrollWidth - slider.clientWidth;
+    if (maxScroll === 0) return;
+    setActiveSlide(Math.round((slider.scrollLeft / maxScroll) * (rest.length - 1)));
+  }
 
   return (
     <>
-      {/* Responsive grid styles via scoped <style> */}
       <style>{`
-        #work-grid {
-          display: grid;
-          grid-template-columns: 60fr 40fr;
-          gap: 24px;
+        #work {
+          padding: clamp(72px, 8vw, 96px) clamp(24px, 4vw, 48px);
+          max-width: 1200px;
+          margin: 0 auto;
         }
-        #work-right-col {
+
+        .slider-label {
+          font-family: var(--vault-font-mono);
+          font-size: 10px;
+          letter-spacing: 1.5px;
+          text-transform: uppercase;
+          color: var(--vault-text-muted);
+          margin-bottom: 20px;
+          display: block;
+        }
+
+        .work-slider-outer {
+          position: relative;
+        }
+
+        /* Left fade */
+        .work-slider-outer::before {
+          content: '';
+          position: absolute;
+          top: 0; left: 0; bottom: 0;
+          width: 72px;
+          background: linear-gradient(to right, var(--vault-bg), transparent);
+          pointer-events: none;
+          z-index: 1;
+        }
+
+        /* Right fade */
+        .work-slider-outer::after {
+          content: '';
+          position: absolute;
+          top: 0; right: 0; bottom: 0;
+          width: 72px;
+          background: linear-gradient(to left, var(--vault-bg), transparent);
+          pointer-events: none;
+          z-index: 1;
+        }
+
+        .work-slider {
           display: flex;
-          flex-direction: column;
-          gap: 24px;
+          gap: 20px;
+          overflow-x: auto;
+          scroll-snap-type: x mandatory;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+          padding-bottom: 4px;
         }
+        .work-slider::-webkit-scrollbar { display: none; }
+
+        .work-slide {
+          flex: 0 0 380px;
+          scroll-snap-align: center;
+        }
+
+        /*
+          Spacer elements at both ends — avoids the browser bug where
+          padding-inline-end on overflow:auto is ignored for scroll extent.
+          This makes every card (including the last) fully centerable.
+        */
+        .work-slider-spacer {
+          flex: 0 0 calc(50% - 190px);
+          pointer-events: none;
+        }
+
         @media (max-width: 768px) {
-          #work-grid {
-            grid-template-columns: 1fr;
-          }
+          .work-slide          { flex: 0 0 78%; }
+          .work-slider-spacer  { flex: 0 0 11%; }
+          .work-slider-outer::before,
+          .work-slider-outer::after { width: 40px; }
+        }
+
+        @media (max-width: 480px) {
+          .work-slide         { flex: 0 0 85%; }
+          .work-slider-spacer { flex: 0 0 7.5%; }
         }
       `}</style>
 
-      <section
-        id="work"
-        aria-label="Selected work"
-        style={{
-          padding:   'clamp(72px, 8vw, 96px) clamp(24px, 4vw, 48px)',
-          maxWidth:  '1200px',
-          margin:    '0 auto',
-        }}
-      >
+      <section id="work" aria-label="Selected work">
         <SectionLabel />
 
-        <div id="work-grid">
-          {/* Featured card — left column */}
-          <FadeIn reducedMotion={reducedMotion} delay={0} style={{ minHeight: 0 }}>
-            <ProjectCard project={featured} isFeatured />
-          </FadeIn>
+        {/* Featured — full width */}
+        <motion.div
+          initial={reducedMotion ? false : { opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+          viewport={{ once: true }}
+          style={{ marginBottom: rest.length > 0 ? '48px' : 0 }}
+        >
+          <ProjectCard project={featured} isFeatured />
+        </motion.div>
 
-          {/* Rest — right column (stacked) */}
-          {rest.length > 0 && (
-            <div id="work-right-col">
-              {rest.map((project, i) => (
-                <FadeIn
-                  key={project.name ?? i}
-                  reducedMotion={reducedMotion}
-                  delay={0.1 + i * 0.1}
-                  style={{ flex: 1, minHeight: 0 }}
-                >
-                  <ProjectCard project={project} />
-                </FadeIn>
-              ))}
+        {/* Rest — centered horizontal scroll slider */}
+        {rest.length > 0 && (
+          <motion.div
+            initial={reducedMotion ? false : { opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: 'easeOut', delay: 0.15 }}
+            viewport={{ once: true }}
+          >
+            <span className="slider-label">More projects</span>
+
+            <div className="work-slider-outer">
+              <div
+                ref={sliderRef}
+                className="work-slider"
+                onScroll={onSliderScroll}
+              >
+                <div className="work-slider-spacer" aria-hidden="true" />
+                {rest.map((project, i) => (
+                  <div key={project.name ?? i} className="work-slide">
+                    <ProjectCard project={project} />
+                  </div>
+                ))}
+                <div className="work-slider-spacer" aria-hidden="true" />
+              </div>
             </div>
-          )}
-        </div>
+
+            {/* Pagination dots */}
+            {rest.length > 1 && (
+              <PaginationDots count={rest.length} active={activeSlide} />
+            )}
+          </motion.div>
+        )}
       </section>
     </>
   );

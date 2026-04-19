@@ -32,23 +32,57 @@ function SectionLabel(): React.ReactElement {
   );
 }
 
+// ─── Profile image ────────────────────────────────────────────────────────────
+
+interface AboutImageProps {
+  image: string;
+  name?: string;
+}
+
+function AboutImage({ image, name }: AboutImageProps): React.ReactElement {
+  return (
+    <div
+      style={{
+        width:        '100%',
+        aspectRatio:  '1 / 1',
+        border:       '1px solid var(--vault-border)',
+        borderRadius: '12px',
+        overflow:     'hidden',
+        background:   'var(--vault-surface)',
+        flexShrink:   0,
+      }}
+    >
+      <img
+        src={image}
+        alt={name ?? 'Profile'}
+        style={{
+          width:     '100%',
+          height:    '100%',
+          objectFit: 'cover',
+          display:   'block',
+        }}
+      />
+    </div>
+  );
+}
+
 // ─── Subheading ───────────────────────────────────────────────────────────────
 
 interface SubheadingProps {
   children: string;
-  style?: React.CSSProperties;
 }
 
-function Subheading({ children, style }: SubheadingProps): React.ReactElement {
+function Subheading({ children }: SubheadingProps): React.ReactElement {
   return (
     <h3
       style={{
-        fontFamily:    'var(--vault-font-display)',
-        fontWeight:    600,
-        fontSize:      '20px',
-        color:         'var(--vault-text-primary)',
-        marginBottom:  '20px',
-        ...style,
+        fontFamily:   'var(--vault-font-display)',
+        fontWeight:   600,
+        fontSize:     '18px',
+        color:        'var(--vault-text-primary)',
+        marginBottom: '20px',
+        marginTop:    0,
+        letterSpacing: '-0.3px',
       }}
     >
       {children}
@@ -67,9 +101,9 @@ function ExperienceItem({ item, isLast }: ExperienceItemProps): React.ReactEleme
   return (
     <div
       style={{
-        marginBottom: '24px',
+        marginBottom:  isLast ? 0 : '24px',
+        paddingBottom: isLast ? 0 : '24px',
         borderBottom:  isLast ? 'none' : '1px solid var(--vault-border)',
-        paddingBottom: isLast ? '0' : '24px',
       }}
     >
       <p
@@ -84,19 +118,26 @@ function ExperienceItem({ item, isLast }: ExperienceItemProps): React.ReactEleme
         {item.position}
       </p>
       {(isFilled(item.company) || isFilled(item.duration)) && (
-        <p style={{ fontFamily: 'var(--vault-font-mono)', fontSize: '12px', color: 'var(--accent)', margin: '4px 0 8px' }}>
+        <p
+          style={{
+            fontFamily: 'var(--vault-font-mono)',
+            fontSize:   '12px',
+            color:      'var(--accent)',
+            margin:     '4px 0 8px',
+          }}
+        >
           {[item.company, item.duration].filter(Boolean).join(' · ')}
         </p>
       )}
       {isFilled(item.description) && (
         <p
           style={{
-            fontFamily:  'var(--vault-font-body)',
-            fontWeight:  300,
-            fontSize:    '14px',
-            color:       'var(--vault-text-secondary)',
-            lineHeight:  1.65,
-            margin:      0,
+            fontFamily: 'var(--vault-font-body)',
+            fontWeight: 300,
+            fontSize:   '14px',
+            color:      'var(--vault-text-secondary)',
+            lineHeight: 1.65,
+            margin:     0,
           }}
         >
           {item.description}
@@ -110,11 +151,18 @@ function ExperienceItem({ item, isLast }: ExperienceItemProps): React.ReactEleme
 
 interface EducationItemProps {
   item: Education;
+  isLast: boolean;
 }
 
-function EducationItem({ item }: EducationItemProps): React.ReactElement {
+function EducationItem({ item, isLast }: EducationItemProps): React.ReactElement {
   return (
-    <div style={{ marginBottom: '20px' }}>
+    <div
+      style={{
+        marginBottom:  isLast ? 0 : '20px',
+        paddingBottom: isLast ? 0 : '20px',
+        borderBottom:  isLast ? 'none' : '1px solid var(--vault-border)',
+      }}
+    >
       <p
         style={{
           fontFamily: 'var(--vault-font-body)',
@@ -127,61 +175,36 @@ function EducationItem({ item }: EducationItemProps): React.ReactElement {
         {item.degree}
       </p>
       {(isFilled(item.university) || isFilled(item.from) || isFilled(item.to)) && (
-        <p style={{ fontFamily: 'var(--vault-font-mono)', fontSize: '12px', color: 'var(--accent)', margin: '4px 0 8px' }}>
-          {[item.university, (isFilled(item.from) && isFilled(item.to)) ? `${item.from}–${item.to}` : undefined].filter(Boolean).join(' · ')}
+        <p
+          style={{
+            fontFamily: 'var(--vault-font-mono)',
+            fontSize:   '12px',
+            color:      'var(--accent)',
+            margin:     '4px 0 8px',
+          }}
+        >
+          {[
+            item.university,
+            isFilled(item.from) && isFilled(item.to)
+              ? `${item.from}–${item.to}`
+              : undefined,
+          ]
+            .filter(Boolean)
+            .join(' · ')}
         </p>
       )}
       {isFilled(item.GPA) && (
-        <p style={{ fontFamily: 'var(--vault-font-mono)', fontSize: '11px', color: 'var(--vault-text-secondary)', margin: 0 }}>
+        <p
+          style={{
+            fontFamily: 'var(--vault-font-mono)',
+            fontSize:   '11px',
+            color:      'var(--vault-text-secondary)',
+            margin:     0,
+          }}
+        >
           GPA {item.GPA}
         </p>
       )}
-    </div>
-  );
-}
-
-// ─── Stat block ───────────────────────────────────────────────────────────────
-
-interface StatBlockProps {
-  value: number;
-  label: string;
-}
-
-function StatBlock({ value, label }: StatBlockProps): React.ReactElement {
-  return (
-    <div
-      style={{
-        display:       'flex',
-        flexDirection: 'column',
-        gap:           '4px',
-        borderLeft:    '2px solid var(--accent-border)',
-        paddingLeft:   '20px',
-      }}
-    >
-      <span
-        style={{
-          fontFamily:    'var(--vault-font-display)',
-          fontWeight:    700,
-          fontSize:      '48px',
-          letterSpacing: '-2px',
-          color:         'var(--vault-text-primary)',
-          lineHeight:    1,
-        }}
-      >
-        {value}
-      </span>
-      <span
-        style={{
-          fontFamily:    'var(--vault-font-mono)',
-          fontWeight:    500,
-          fontSize:      '10px',
-          letterSpacing: '2px',
-          textTransform: 'uppercase',
-          color:         'var(--vault-text-secondary)',
-        }}
-      >
-        {label}
-      </span>
     </div>
   );
 }
@@ -190,45 +213,58 @@ function StatBlock({ value, label }: StatBlockProps): React.ReactElement {
 
 export default function About({ data }: AboutProps): React.ReactElement {
   const bio        = data?.bio;
+  const image      = data?.image;
   const experience = (data?.experience ?? []).filter((e) => isFilled(e.position));
   const education  = (data?.education  ?? []).filter((e) => isFilled(e.degree));
+  const hasImage   = isFilled(image);
 
   const reducedMotion = useReducedMotion() ?? false;
-
-  const yearsActive     = experience.length + 2;
-  const projectsBuilt   = education.length + experience.length + 4;
-  const clientsServed   = Math.max(experience.length, 3);
 
   const motionProps: Partial<HTMLMotionProps<'section'>> = reducedMotion
     ? {}
     : {
         initial:     { opacity: 0, y: 30 },
-        whileInView: { opacity: 1, y: 0 },
+        whileInView: { opacity: 1, y: 0  },
         transition:  { duration: 0.6, ease: 'easeOut' as const },
         viewport:    { once: true },
       };
 
   return (
     <>
-      {/* Responsive grid via scoped <style> */}
       <style>{`
-        #about-grid {
+        #about {
+          padding: 96px 48px;
+          max-width: 1200px;
+          margin: 0 auto;
+        }
+
+        /* Bio row: image + bio text */
+        #about-bio-row {
+          display: grid;
+          grid-template-columns: ${hasImage ? '260px 1fr' : '1fr'};
+          gap: 48px;
+          align-items: start;
+          margin-bottom: 56px;
+        }
+
+        /* Experience + Education columns */
+        #about-details-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 64px;
+          gap: 48px;
           align-items: start;
         }
-        #about-stats {
-          display: flex;
-          flex-direction: column;
-          gap: 32px;
-        }
+
         @media (max-width: 768px) {
           #about {
             padding: 72px 24px !important;
           }
-          #about-grid {
-            grid-template-columns: 1fr;
+          #about-bio-row {
+            grid-template-columns: 1fr !important;
+            gap: 32px !important;
+          }
+          #about-details-grid {
+            grid-template-columns: 1fr !important;
           }
         }
       `}</style>
@@ -236,36 +272,48 @@ export default function About({ data }: AboutProps): React.ReactElement {
       <motion.section
         id="about"
         aria-label="About"
-        style={{
-          padding:   '96px 48px',
-          maxWidth:  '1200px',
-          margin:    '0 auto',
-        }}
         {...motionProps}
       >
         <SectionLabel />
 
-        <div id="about-grid">
-          {/* ── Left column: bio + experience + education ── */}
-          <div>
-            {/* Bio */}
+        {/* Bio row — image (if exists) + bio text */}
+        {(hasImage || isFilled(bio)) && (
+          <div id="about-bio-row">
+            {hasImage && <AboutImage image={image!} name={data?.bio ? undefined : 'Profile'} />}
+
             {isFilled(bio) && (
               <p
                 style={{
-                  fontFamily:   'var(--vault-font-body)',
-                  fontWeight:   300,
-                  fontSize:     '15px',
-                  color:        'var(--vault-text-secondary)',
-                  lineHeight:   1.75,
-                  marginBottom: '40px',
-                  marginTop:    0,
+                  fontFamily:  'var(--vault-font-body)',
+                  fontWeight:  300,
+                  fontSize:    '16px',
+                  color:       'var(--vault-text-secondary)',
+                  lineHeight:  1.8,
+                  margin:      0,
+                  alignSelf:   'center',
                 }}
               >
                 {bio}
               </p>
             )}
+          </div>
+        )}
 
-            {/* Experience */}
+        {/* Divider between bio and details */}
+        {(hasImage || isFilled(bio)) && (experience.length > 0 || education.length > 0) && (
+          <div
+            aria-hidden="true"
+            style={{
+              height:       '1px',
+              background:   'var(--vault-border)',
+              marginBottom: '48px',
+            }}
+          />
+        )}
+
+        {/* Experience + Education columns */}
+        {(experience.length > 0 || education.length > 0) && (
+          <div id="about-details-grid">
             {experience.length > 0 && (
               <div>
                 <Subheading>Experience</Subheading>
@@ -279,24 +327,20 @@ export default function About({ data }: AboutProps): React.ReactElement {
               </div>
             )}
 
-            {/* Education */}
             {education.length > 0 && (
-              <div style={{ marginTop: '40px' }}>
+              <div>
                 <Subheading>Education</Subheading>
                 {education.map((item, i) => (
-                  <EducationItem key={item.degree ?? i} item={item} />
+                  <EducationItem
+                    key={item.degree ?? i}
+                    item={item}
+                    isLast={i === education.length - 1}
+                  />
                 ))}
               </div>
             )}
           </div>
-
-          {/* ── Right column: stat blocks ── */}
-          <div id="about-stats">
-            <StatBlock value={yearsActive}   label="Years active" />
-            <StatBlock value={projectsBuilt} label="Projects built" />
-            <StatBlock value={clientsServed} label="Clients" />
-          </div>
-        </div>
+        )}
       </motion.section>
     </>
   );

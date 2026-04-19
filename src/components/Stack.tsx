@@ -10,11 +10,11 @@ interface StackProps {
 }
 
 interface ParticleData {
-  id: number;
-  top: string;
-  left: string;
+  id:       number;
+  top:      string;
+  left:     string;
   duration: number;
-  delay: number;
+  delay:    number;
 }
 
 // ─── Seeded pseudo-random (avoids hydration mismatch) ────────────────────────
@@ -42,7 +42,7 @@ function Particle({ particle }: ParticleProps): React.ReactElement {
         height:       '2px',
         borderRadius: '50%',
         background:   'var(--accent)',
-        opacity:      0.3,
+        opacity:      0.25,
         animation:    `particle-float ${particle.duration}s ease-in-out ${particle.delay}s infinite alternate`,
         pointerEvents: 'none',
       }}
@@ -64,7 +64,7 @@ function SectionLabel(): React.ReactElement {
         color:         'var(--accent)',
         paddingLeft:   '10px',
         borderLeft:    '1px solid var(--accent)',
-        marginBottom:  '48px',
+        marginBottom:  '64px',
       }}
     >
       Stack
@@ -76,29 +76,50 @@ function SectionLabel(): React.ReactElement {
 
 interface SkillItemProps {
   skill: string;
+  index: number;
 }
 
-function SkillItem({ skill }: SkillItemProps): React.ReactElement {
+function SkillItem({ skill, index }: SkillItemProps): React.ReactElement {
+  const [hovered, setHovered] = useState(false);
+
   return (
-    <span
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       style={{
-        fontFamily:    'var(--vault-font-mono)',
-        fontSize:      '15px',
-        color:         'var(--accent)',
-        letterSpacing: '0.5px',
-        opacity:       1,
-        transition:    'opacity 0.2s ease',
-        cursor:        'default',
-      }}
-      onMouseEnter={(e) => {
-        (e.currentTarget as HTMLSpanElement).style.opacity = '0.7';
-      }}
-      onMouseLeave={(e) => {
-        (e.currentTarget as HTMLSpanElement).style.opacity = '1';
+        display:    'flex',
+        alignItems: 'baseline',
+        gap:        '10px',
+        cursor:     'default',
+        transition: 'opacity 0.2s ease',
+        opacity:    hovered ? 0.6 : 1,
       }}
     >
-      {skill}
-    </span>
+      <span
+        style={{
+          fontFamily:    'var(--vault-font-mono)',
+          fontSize:      '11px',
+          color:         'var(--vault-text-muted)',
+          letterSpacing: '0.5px',
+          lineHeight:    1,
+          userSelect:    'none',
+        }}
+      >
+        {String(index + 1).padStart(2, '0')}
+      </span>
+      <span
+        style={{
+          fontFamily:    'var(--vault-font-mono)',
+          fontSize:      'clamp(20px, 2.5vw, 28px)',
+          fontWeight:    400,
+          color:         'var(--accent)',
+          letterSpacing: '0.5px',
+          lineHeight:    1.2,
+        }}
+      >
+        {skill}
+      </span>
+    </div>
   );
 }
 
@@ -115,11 +136,10 @@ export default function Stack({ skills = [] }: StackProps): React.ReactElement {
       top:      `${Math.floor(seededRandom(i * 3)     * 100)}%`,
       left:     `${Math.floor(seededRandom(i * 3 + 1) * 100)}%`,
       duration: 3 + seededRandom(i * 3 + 2) * 5,
-      delay:    seededRandom(i * 7)          * 5,
+      delay:    seededRandom(i * 7) * 5,
     }));
   }, []);
 
-  // Particles are decorative — render only after mount to avoid SSR/CSR mismatch
   const particles = mounted && !reducedMotion ? allParticles : [];
 
   return (
@@ -176,11 +196,12 @@ export default function Stack({ skills = [] }: StackProps): React.ReactElement {
                 display:        'flex',
                 flexWrap:       'wrap',
                 justifyContent: 'center',
-                gap:            '24px',
+                columnGap:      '48px',
+                rowGap:         '28px',
               }}
             >
               {skills.map((skill, i) => (
-                <SkillItem key={`${skill}-${i}`} skill={skill} />
+                <SkillItem key={`${skill}-${i}`} skill={skill} index={i} />
               ))}
             </div>
           ) : (

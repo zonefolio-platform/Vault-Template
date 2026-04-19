@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import { getThemeColors } from '@/lib/theme';
 import SplashCursorLoader from '@/components/SplashCursorLoader';
+import ThemeInjector from '@/components/ThemeInjector';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -13,17 +13,8 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }): React.ReactElement {
-  const { accent, secondary, highlight } = getThemeColors();
-
   return (
-    <html
-      lang="en"
-      style={{
-        '--accent':    accent,
-        '--secondary': secondary,
-        '--highlight': highlight,
-      } as React.CSSProperties}
-    >
+    <html lang="en">
       <head>
         <link
           href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700&display=swap"
@@ -39,6 +30,7 @@ export default function RootLayout({
         />
       </head>
       <body>
+        <ThemeInjector />
         <SplashCursorLoader />
         {children}
       </body>
